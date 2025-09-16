@@ -1,7 +1,5 @@
 package estruturaDoProjeto;
 import java.time.LocalDate;
-import jakarta.persistence.MappedSuperclass;
-
 
 @MappedSuperclass
 public class Usuario {
