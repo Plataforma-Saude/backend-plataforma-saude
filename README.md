@@ -51,6 +51,10 @@ Adicione %MAVEN_HOME%\bin ao Path
 ### 6. Instalar o IntelliJ IDEA
 Baixe o IntelliJ IDEA: https://www.jetbrains.com/idea/download/
 
+Escolha a Community Edition (gratuita) ou Ultimate (paga).
+
+Siga as instruções do instalador para finalizar a instalação.
+
 # 🔄 Atualizar branch com a main antes do Pull Request (PR)
 Quando a branch `main` foi atualizada enquanto você ainda estava trabalhando em uma outra branch, o procedimento recomendado é seguir os passos abaixo para garantir que sua branch esteja sincronizada com as últimas alterações da `main`:
 
@@ -69,8 +73,5 @@ Isso vai mesclar as mudanças da `main` para a branch que está trabalhando. Cas
 - `git add <arquivo_resolvido>` 
 - `git commit`
 
-Escolha a Community Edition (gratuita) ou Ultimate (paga).
-
-Siga as instruções do instalador para finalizar a instalação.
 
 
