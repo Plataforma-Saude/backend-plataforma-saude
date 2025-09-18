@@ -51,6 +51,24 @@ Adicione %MAVEN_HOME%\bin ao Path
 ### 6. Instalar o IntelliJ IDEA
 Baixe o IntelliJ IDEA: https://www.jetbrains.com/idea/download/
 
+# 🔄 Atualizar branch com a main antes do Pull Request (PR)
+Quando a branch `main` foi atualizada enquanto você ainda estava trabalhando em uma outra branch, o procedimento recomendado é seguir os passos abaixo para garantir que sua branch esteja sincronizada com as últimas alterações da `main`:
+
+1 - **Atualize a branch `main`**: Antes de fazer qualquer coisa, volte para a branch `main` e garanta que ela tenha todas as atualizações mais recentes:
+- `git checkout main` 
+- `git pull origin main` (ou só `git pull`)
+
+2 - **Mescle a branch `main` na branch que está trabalhando**: Agora, volte para a branch que está trabalhando e faça a mesclagem da branch `main` para trazer as atualizações:
+
+- `git checkout {nome da branch que estava trabalhando}`
+- `git merge main`
+
+Isso vai mesclar as mudanças da `main` para a branch que está trabalhando. Caso existam conflitos, o Git vai alertar, e você poderá resolvê-los manualmente.
+
+3 - **Resolva conflitos (se houver)**: Se surgirem conflitos durante a mesclagem, o Git indicará os arquivos conflitantes. Você precisará editar esses arquivos, resolver os conflitos e, em seguida, fazer um commit:
+- `git add <arquivo_resolvido>` 
+- `git commit`
+
 Escolha a Community Edition (gratuita) ou Ultimate (paga).
 
 Siga as instruções do instalador para finalizar a instalação.
