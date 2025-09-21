@@ -1,4 +1,4 @@
-package estruturaDoProjeto;
+package plataformaSaude.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 

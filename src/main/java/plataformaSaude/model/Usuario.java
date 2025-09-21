@@ -1,4 +1,4 @@
-package estruturaDoProjeto;
+package plataformaSaude.model;
 import java.time.LocalDate;
 
 @MappedSuperclass

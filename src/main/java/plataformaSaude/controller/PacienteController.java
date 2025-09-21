@@ -1,8 +1,8 @@
-package estruturaDoProjeto.controller;
+package plataformaSaude.controller;
 
 import org.springframework.web.bind.annotation.*;
-import estruturaDoProjeto.Paciente;
-import estruturaDoProjeto.repository.PacienteRepository;
+import plataformaSaude.model.Paciente;
+import plataformaSaude.repository.PacienteRepository;
 
 import java.util.List;
 import java.util.Optional;
