@@ -8,7 +8,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.9</version>
-        <relativePath/> <!-- busca o parent do repositório central -->
+        <relativePath/>
     </parent>
 
     <groupId>Inicio</groupId>
@@ -22,26 +22,59 @@
     </properties>
 
     <dependencies>
-        <!-- Starter para criar APIs REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Starter para testes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
+            <groupId>com.h2database</groupId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
+            <artifactId>h2</artifactId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
+            <scope>runtime</scope><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
+        </dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
     </dependencies>
-
     <build>
         <plugins>
-            <!-- Plugin do Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.34</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>

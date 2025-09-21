@@ -1,6 +1,7 @@
-package estruturaDoProjeto;
+package plataformaSaude.model;
 import java.time.LocalDate;
 
+@MappedSuperclass
 public class Usuario {
     private String nome;
     private String sobrenome;
@@ -16,7 +17,7 @@ public class Usuario {
     private LocalDate dataNascimento;
     private LocalDate dataCadastro;
 
-    //Sugestão para dados que são obrigatórios no cadastro, os demais dados poderiam ser preenchidos depois!!
+      //Sugestão para dados que são obrigatórios no cadastro, os demais dados poderiam ser preenchidos depois!!
     public Usuario(String nome, String sobrenome, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
         this.nome = nome;
         this.sobrenome = sobrenome;
