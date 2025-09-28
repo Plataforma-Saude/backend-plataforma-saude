@@ -1,6 +1,10 @@
 package plataformaSaude.model;
 import java.time.LocalDate;
 
+
+//Adicionei essa linha, pois não estava herdando as propriedades de usuário (invocando o super/constructor) em médico e paciente
+import jakarta.persistence.MappedSuperclass;
+
 @MappedSuperclass
 public class Usuario {
     private String nome;
