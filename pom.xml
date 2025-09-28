@@ -47,6 +47,26 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Dependências para JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <groupId>com.h2database</groupId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <artifactId>h2</artifactId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
