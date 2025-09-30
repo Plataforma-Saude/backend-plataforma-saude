@@ -1,12 +1,21 @@
 package plataformaSaude.model;
 import java.time.LocalDate;
+import jakarta.persistence.MappedSuperclass;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails; // Import necessário
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List; // Import necessário
 
 
 //Adicionei essa linha, pois não estava herdando as propriedades de usuário (invocando o super/constructor) em médico e paciente
 import jakarta.persistence.MappedSuperclass;
 
+
 @MappedSuperclass
-public class Usuario {
+public class Usuario implements UserDetails {
     private String nome;
     private String sobrenome;
     private String cpf;
@@ -35,6 +44,42 @@ public class Usuario {
 
     public Usuario() {
         this.dataCadastro = LocalDate.now();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Define as permissões do usuário. Para começar, todos terão a permissão 'USER'.
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha; // Spring Security usará este metodo para pegar a senha.
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email; // Usaremos o email como "username" para o login.
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // A conta nunca expira.
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // A conta nunca é bloqueada.
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // As credenciais nunca expiram.
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // A conta está sempre ativa.
     }
 
     public String getNome() { return nome; }
