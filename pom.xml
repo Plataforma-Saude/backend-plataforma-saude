@@ -11,6 +11,7 @@
         <relativePath/>
     </parent>
 
+
     <groupId>Inicio</groupId>
     <artifactId>PrimeiraParte</artifactId>
     <version>1.0.0</version>
@@ -19,6 +20,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
     </properties>
 
     <dependencies>
@@ -81,6 +84,12 @@
         </dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -88,12 +97,20 @@
             </plugin>
 
             <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>21</source>
+                    <target>21</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -101,6 +118,7 @@
                             <version>1.18.34</version>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
         </plugins>

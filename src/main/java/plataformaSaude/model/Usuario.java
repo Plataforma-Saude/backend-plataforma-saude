@@ -1,21 +1,26 @@
 package plataformaSaude.model;
 import java.time.LocalDate;
-import jakarta.persistence.MappedSuperclass;
+import java.util.Collection;
+import java.util.List;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails; // Import necessário
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List; // Import necessário
+import org.springframework.security.core.userdetails.UserDetails;
 
 
-//Adicionei essa linha, pois não estava herdando as propriedades de usuário (invocando o super/constructor) em médico e paciente
-import jakarta.persistence.MappedSuperclass;
-
-
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Usuario implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String nome;
     private String sobrenome;
     private String cpf;
@@ -29,8 +34,11 @@ public class Usuario implements UserDetails {
     private String estado;
     private LocalDate dataNascimento;
     private LocalDate dataCadastro;
+    private String resetPasswordToken;
+    private LocalDate resetPasswordTokenExpiryDate;
 
-      //Sugestão para dados que são obrigatórios no cadastro, os demais dados poderiam ser preenchidos depois!!
+
+    //Sugestão para dados que são obrigatórios no cadastro, os demais dados poderiam ser preenchidos depois!!
     public Usuario(String nome, String sobrenome, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
         this.nome = nome;
         this.sobrenome = sobrenome;
@@ -50,6 +58,22 @@ public class Usuario implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Define as permissões do usuário. Para começar, todos terão a permissão 'USER'.
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public LocalDate getResetPasswordTokenExpiryDate() {
+        return resetPasswordTokenExpiryDate;
+    }
+
+    public void setResetPasswordTokenExpiryDate(LocalDate resetPasswordTokenExpiryDate) {
+        this.resetPasswordTokenExpiryDate = resetPasswordTokenExpiryDate;
     }
 
     @Override
@@ -119,4 +143,8 @@ public class Usuario implements UserDetails {
     public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
 
     public LocalDate getDataCadastro() { return dataCadastro; }
+
+    public Long getId() {
+        return id;
+    }
 }
