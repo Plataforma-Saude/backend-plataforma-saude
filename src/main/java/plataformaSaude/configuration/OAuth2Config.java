@@ -2,8 +2,8 @@ package plataformaSaude.configuration;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,31 +26,36 @@ import java.util.UUID;
 public class OAuth2Config {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, OidcUserService oidcUserService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable) // Desativa proteção CSRF (adequado para APIs REST)
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**")) // Desativa CSRF só para H2
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error", "/favicon.ico", "/").permitAll() // Rotas públicas
-                        .anyRequest().authenticated() // Todas as outras exigem autenticação
+                        .requestMatchers(
+                                "/", "/h2-console/**", // libera H2 console e página inicial
+                                "/oauth2/**", "/login/oauth2/**", "/error", "/favicon.ico",
+                                "/auth/register/**", "/auth/redefinir-senha", "/auth/reset-senha"
+                        ).permitAll()
+                        .anyRequest().authenticated() // resto exige login
                 )
+                .headers(headers -> headers.frameOptions().sameOrigin()) // permite iframes para H2
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/home", true) // Após login, vai para /home
-                        .failureUrl("/error?error=true") // Em caso de erro
-                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService())) // Define o serviço de usuário
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/error?error=true")
+                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
                 )
-                .logout(logout -> logout.logoutSuccessUrl("/").permitAll()) // Logout redireciona para raiz
+                .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
                 .build();
     }
 
     @Bean
     public OidcUserService oidcUserService() {
-        return new OidcUserService(); // Serviço padrão para carregar dados do usuário via OIDC
+        return new OidcUserService();
     }
 
     @Bean
     public JwtEncoder jwtEncoder() {
         JWKSource<SecurityContext> jwkSource = getJwkSource();
-        return new NimbusJwtEncoder(jwkSource); // Encoder para gerar JWTs assinados
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     private JWKSource<SecurityContext> getJwkSource() {
@@ -59,17 +64,17 @@ public class OAuth2Config {
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString()) // Identificador único da chave
+                .keyID(UUID.randomUUID().toString())
                 .build();
-        JWKSet jwkSet = new JWKSet(rsaKey); // Conjunto de chaves JWK
-        return new ImmutableJWKSet<>(jwkSet); // Fonte imutável de chaves
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
     }
 
     private KeyPair generateRsaKey() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048); // Tamanho da chave para segurança
-            return keyPairGenerator.generateKeyPair(); // Gera par público/privado
+            keyPairGenerator.initialize(2048);
+            return keyPairGenerator.generateKeyPair();
         } catch (Exception ex) {
             throw new IllegalStateException("Erro ao gerar RSA KeyPair", ex);
         }

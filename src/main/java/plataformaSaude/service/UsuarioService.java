@@ -23,6 +23,10 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         usuarioRepository.save(usuario);
     }
+    public String hashSenha(String senha){
+        return passwordEncoder.encode(senha);
+    }
+
 
     public boolean validarSenha(Usuario usuario, String senhaDigitada) {
         return passwordEncoder.matches(senhaDigitada, usuario.getSenha());
