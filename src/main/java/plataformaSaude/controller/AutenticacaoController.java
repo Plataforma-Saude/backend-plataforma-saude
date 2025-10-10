@@ -6,6 +6,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import plataformaSaude.model.Medico;
+import plataformaSaude.model.Paciente;
+import plataformaSaude.repository.MedicoRepository;
+import plataformaSaude.repository.PacienteRepository;
 import plataformaSaude.service.UsuarioService;
 import plataformaSaude.dto.PasswordResetRequest;
 import plataformaSaude.dto.PasswordResetConfirm;
@@ -16,6 +20,12 @@ public class AutenticacaoController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private MedicoRepository medicoRepository;
+
+    @Autowired
+    private PacienteRepository pacienteRepository;
 
     @PostMapping("/redefinir-senha")
     public ResponseEntity<String> solicitarResetSenha(@RequestBody PasswordResetRequest request) {
@@ -38,7 +48,19 @@ public class AutenticacaoController {
         if (usuarioService.redefinirSenha(token, novaSenha)) {
             return ResponseEntity.ok("Nova senha criada com sucesso!!");
         } else {
-            return ResponseEntity.badRequest().body("Token inválido / expirado.");
+            return ResponseEntity.badRequest().body("Token inválido ou expirado.");
         }
+    }
+    @PostMapping("/register/paciente")
+    public ResponseEntity<Paciente> registrarPaciente(@RequestBody Paciente paciente) {
+        paciente.setSenha(usuarioService.hashSenha(paciente.getSenha()));
+        Paciente novoPaciente = pacienteRepository.save(paciente);
+        return ResponseEntity.ok(novoPaciente);
+    }
+    @PostMapping("/register/medico")
+    public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
+        medico.setSenha(usuarioService.hashSenha(medico.getSenha()));
+        Medico novoMedico = medicoRepository.save(medico);
+        return ResponseEntity.ok(novoMedico);
     }
 }
