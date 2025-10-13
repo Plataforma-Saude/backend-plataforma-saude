@@ -9,9 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -28,16 +29,19 @@ public class OAuth2Config {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**")) // Desativa CSRF só para H2
-                .authorizeHttpRequests(authorize -> authorize
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/h2-console/**", // libera H2 console e página inicial
+                                "/", "/h2-console/**",
                                 "/oauth2/**", "/login/oauth2/**", "/error", "/favicon.ico",
                                 "/auth/register/**", "/auth/redefinir-senha", "/auth/reset-senha"
                         ).permitAll()
-                        .anyRequest().authenticated() // resto exige login
+                        .anyRequest().authenticated()
                 )
-                .headers(headers -> headers.frameOptions().sameOrigin()) // permite iframes para H2
+                .headers(headers -> headers.frameOptions().sameOrigin())
+                // JWT Resource Server
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
+                // OAuth2 login
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/error?error=true")
@@ -58,19 +62,23 @@ public class OAuth2Config {
         return new NimbusJwtEncoder(jwkSource);
     }
 
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withPublicKey((RSAPublicKey) getRsaKey().getPublic()).build();
+    }
+
     private JWKSource<SecurityContext> getJwkSource() {
-        KeyPair keyPair = generateRsaKey();
+        KeyPair keyPair = getRsaKey();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
                 .keyID(UUID.randomUUID().toString())
                 .build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return new ImmutableJWKSet<>(jwkSet);
+        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
     }
 
-    private KeyPair generateRsaKey() {
+    private KeyPair getRsaKey() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);

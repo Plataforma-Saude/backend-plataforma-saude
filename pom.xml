@@ -94,6 +94,11 @@
             <version>4.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
         <dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <groupId>com.h2database</groupId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <artifactId>h2</artifactId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->

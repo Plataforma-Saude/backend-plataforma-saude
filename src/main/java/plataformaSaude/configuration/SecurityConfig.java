@@ -2,16 +2,27 @@ package plataformaSaude.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class SecurityConfig {
 
-    // Bean apenas para o PasswordEncoder
+    @Bean
+    @Order(1) // prioridade maior: executa antes do OAuth2
+    public SecurityFilterChain registerFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/auth/register/**")
+                .csrf().disable()
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+        return http.build();
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
