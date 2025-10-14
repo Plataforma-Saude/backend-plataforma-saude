@@ -39,3 +39,6 @@ build/
 
 ##Chaves de APIS, etc
 .env
+
+##testes de api
+paciente.json
