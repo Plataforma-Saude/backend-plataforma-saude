@@ -99,10 +99,22 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <groupId>com.h2database</groupId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <artifactId>h2</artifactId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
             <scope>runtime</scope><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
         </dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
     </dependencies>
     <build>
