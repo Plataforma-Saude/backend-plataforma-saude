@@ -42,3 +42,5 @@ build/
 
 ##testes de api
 paciente.json
+
+/test/
