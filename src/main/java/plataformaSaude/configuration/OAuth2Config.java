@@ -34,7 +34,10 @@ public class OAuth2Config {
                                 "/", "/error", "/h2-console/**",
                                 "/oauth2/**", "/login/oauth2/**",
                                 "/favicon.ico",
-                                "/auth/register/**", "/auth/redefinir-senha", "/auth/reset-senha"
+                                "/auth/register/**", "/auth/redefinir-senha", "/auth/reset-senha",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
