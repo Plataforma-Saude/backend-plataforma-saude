@@ -21,6 +21,11 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+
 @Configuration
 @EnableWebSecurity
 public class OAuth2Config {
@@ -28,6 +33,7 @@ public class OAuth2Config {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -49,6 +55,29 @@ public class OAuth2Config {
                 )
                 .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Define a origem permitida (seu React)
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+
+        // Define os métodos HTTP permitidos
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+
+        // Define os cabeçalhos permitidos (importante para autenticação)
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+
+        // Permite o envio de credenciais (como cookies ou tokens)
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Aplica essa configuração para todas as rotas da sua API ("/**")
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean

@@ -47,6 +47,10 @@ public class UsuarioService {
         return Optional.empty();
     }
 
+    public Usuario buscarPorCpf(String cpf) {
+        return usuarioRepository.findByCpf(cpf);
+    }
+
     public boolean redefinirSenha(String token, String novaSenha) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByResetPasswordToken(token);
 
