@@ -1,13 +1,12 @@
 package plataformaSaude.model;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "pacientes")
 public class Paciente extends Usuario {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     private String profissao;
 
@@ -21,15 +20,6 @@ public class Paciente extends Usuario {
         this.profissao = profissao;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getProfissao() {
-        return profissao;
-    }
-
-    public void setProfissao(String profissao) {
-        this.profissao = profissao;
-    }
+    public String getProfissao() { return profissao; }
+    public void setProfissao(String profissao) { this.profissao = profissao; }
 }
