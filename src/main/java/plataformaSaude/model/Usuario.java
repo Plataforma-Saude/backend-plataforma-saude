@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Column; // Adicionado para garantir o tamanho da senha
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,7 @@ public class Usuario implements UserDetails {
     private String sobrenome;
     private String cpf;
     private String email;
+    @Column(length = 100)
     private String senha;
     private String telefone;
     private String celular;
@@ -37,8 +39,15 @@ public class Usuario implements UserDetails {
     private String resetPasswordToken;
     private LocalDate resetPasswordTokenExpiryDate;
 
+    private String tipoUsuario;
 
-    //Sugestão para dados que são obrigatórios no cadastro, os demais dados poderiam ser preenchidos depois!!
+    public Usuario() {
+        this.dataCadastro = LocalDate.now();
+
+        this.tipoUsuario = determinarTipoUsuario();
+    }
+
+    // Construtor de cadastro com campos obrigatórios
     public Usuario(String nome, String sobrenome, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
         this.nome = nome;
         this.sobrenome = sobrenome;
@@ -48,16 +57,62 @@ public class Usuario implements UserDetails {
         this.celular = celular;
         this.dataNascimento = dataNascimento;
         this.dataCadastro = LocalDate.now();
+        this.tipoUsuario = determinarTipoUsuario();
     }
 
-    public Usuario() {
-        this.dataCadastro = LocalDate.now();
+    // Método auxiliar para definir a Role do usuário
+    private String determinarTipoUsuario() {
+        if (this instanceof Medico) {
+            return "MEDICO";
+        } else if (this instanceof Paciente) {
+            return "PACIENTE";
+        }
+        return "USER";
+    }
+
+    public String getTipoUsuario() {
+        return tipoUsuario;
+    }
+
+    public void setTipoUsuario(String tipoUsuario) {
+        this.tipoUsuario = tipoUsuario;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Define as permissões do usuário. Para começar, todos terão a permissão 'USER'.
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // Retorna a role baseada no tipo de instância (ROLE_MEDICO, ROLE_PACIENTE, etc.)
+        String role = "ROLE_" + this.tipoUsuario;
+        return List.of(new SimpleGrantedAuthority(role));
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public String getResetPasswordToken() {
@@ -74,36 +129,6 @@ public class Usuario implements UserDetails {
 
     public void setResetPasswordTokenExpiryDate(LocalDate resetPasswordTokenExpiryDate) {
         this.resetPasswordTokenExpiryDate = resetPasswordTokenExpiryDate;
-    }
-
-    @Override
-    public String getPassword() {
-        return this.senha; // Spring Security usará este metodo para pegar a senha.
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email; // Usaremos o email como "username" para o login.
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // A conta nunca expira.
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // A conta nunca é bloqueada.
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // As credenciais nunca expiram.
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // A conta está sempre ativa.
     }
 
     public String getNome() { return nome; }

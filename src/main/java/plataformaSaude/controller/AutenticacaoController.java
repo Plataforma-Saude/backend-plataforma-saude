@@ -1,34 +1,56 @@
 package plataformaSaude.controller;
 
+// Imports do HEAD
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import plataformaSaude.dto.PacienteRegistroDTO;
+
+// Imports da MAIN
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import plataformaSaude.dto.PasswordResetRequest;
+import plataformaSaude.dto.PasswordResetConfirm;
+import plataformaSaude.dto.LoginRequest;
+import plataformaSaude.dto.AuthResponse;
+
+// Imports comuns (mesclados)
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import plataformaSaude.dto.PacienteRegistroDTO;
 import plataformaSaude.model.Medico;
 import plataformaSaude.model.Paciente;
 import plataformaSaude.model.Usuario;
 import plataformaSaude.repository.MedicoRepository;
 import plataformaSaude.repository.PacienteRepository;
 import plataformaSaude.service.UsuarioService;
-import plataformaSaude.dto.PasswordResetRequest;
-import plataformaSaude.dto.PasswordResetConfirm;
+
+import java.time.Instant;
+
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Ajuste o CrossOrigin conforme necessário
 public class AutenticacaoController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
+    private final MedicoRepository medicoRepository;
+    private final PacienteRepository pacienteRepository;
+    private final JwtEncoder jwtEncoder;
 
-//    @Autowired
-//    private MedicoRepository medicoRepository;
-//
-//    @Autowired
-//    private PacienteRepository pacienteRepository;
+    // --- Injeção de dependência da MAIN ---
+    public AutenticacaoController(
+            UsuarioService usuarioService,
+            MedicoRepository medicoRepository,
+            PacienteRepository pacienteRepository,
+            JwtEncoder jwtEncoder
+    ) {
+        this.usuarioService = usuarioService;
+        this.medicoRepository = medicoRepository;
+        this.pacienteRepository = pacienteRepository;
+        this.jwtEncoder = jwtEncoder;
+    }
 
+    // --- Seu novo endpoint de registro de Paciente (do HEAD) ---
     @PostMapping("/register")
     public ResponseEntity<?> registrarPaciente(@Valid @RequestBody PacienteRegistroDTO dto) {
         if (usuarioService.buscarPorEmail(dto.getEmail()) != null) {
@@ -47,19 +69,21 @@ public class AutenticacaoController {
         novoPaciente.setEmail(dto.getEmail());
         novoPaciente.setCpf(dto.getCpf());
 
-        // Vamos dividir o "nomeCompleto" em "nome" e "sobrenome"
         String nomeCompleto = dto.getNomeCompleto();
-        String[] partesNome = nomeCompleto.trim().split(" ", 2); // Divide no primeiro espaço
+        String[] partesNome = nomeCompleto.trim().split(" ", 2);
 
         novoPaciente.setNome(partesNome[0]);
 
         if (partesNome.length > 1) {
             novoPaciente.setSobrenome(partesNome[1]);
         } else {
-            novoPaciente.setSobrenome(""); // Deixa sobrenome vazio se só tiver um nome
+            novoPaciente.setSobrenome("");
         }
 
-        novoPaciente.setSenha(dto.getSenha());
+        // --- CORREÇÃO DE SEGURANÇA (aplicada) ---
+        novoPaciente.setSenha(usuarioService.hashSenha(dto.getSenha()));
+
+        novoPaciente.setTipoUsuario("PACIENTE");
 
         try {
             usuarioService.salvarUsuario(novoPaciente);
@@ -69,8 +93,45 @@ public class AutenticacaoController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(STR."Erro ao registrar usuário: \{e.getMessage()}");
+                    .body("Erro ao registrar usuário: " + e.getMessage());
         }
+    }
+
+    // --- Endpoint de registro de Médico (da MAIN) ---
+    @PostMapping("/register/medico")
+    public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
+        medico.setTipoUsuario("MEDICO"); // Define a Role
+        medico.setSenha(usuarioService.hashSenha(medico.getSenha()));
+        Medico novoMedico = medicoRepository.save(medico);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoMedico);
+    }
+
+
+    // --- Métodos de Login e Reset (da MAIN) ---
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        Usuario usuario = usuarioService.buscarPorEmail(request.getEmail());
+        if (usuario == null || !usuarioService.validarSenha(usuario, request.getSenha())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Instant now = Instant.now();
+        String role = usuario.getAuthorities().iterator().next().getAuthority();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(3600)) // Token expira em 1 hora
+                .subject(usuario.getEmail())
+                .claim("id", usuario.getId())
+                .claim("nome", usuario.getNome())
+                .claim("roles", role)
+                .build();
+
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+        return ResponseEntity.ok(new AuthResponse(token, "Login bem-sucedido"));
     }
 
     @PostMapping("/redefinir-senha")
@@ -79,7 +140,6 @@ public class AutenticacaoController {
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body("O e-mail é obrigatório.");
         }
-
         return ResponseEntity.ok("Caso o seu e-mail esteja cadastrado na nossa plataforma, você receberá um e-mail em instantes.");
     }
 
@@ -97,16 +157,4 @@ public class AutenticacaoController {
             return ResponseEntity.badRequest().body("Token inválido ou expirado.");
         }
     }
-//    @PostMapping("/register/paciente")
-//    public ResponseEntity<Paciente> registrarPaciente(@RequestBody Paciente paciente) {
-//        paciente.setSenha(usuarioService.hashSenha(paciente.getSenha()));
-//        Paciente novoPaciente = pacienteRepository.save(paciente);
-//        return ResponseEntity.ok(novoPaciente);
-//    }
-//    @PostMapping("/register/medico")
-//    public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
-//        medico.setSenha(usuarioService.hashSenha(medico.getSenha()));
-//        Medico novoMedico = medicoRepository.save(medico);
-//        return ResponseEntity.ok(novoMedico);
-//    }
 }
