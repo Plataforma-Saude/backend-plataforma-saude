@@ -81,7 +81,8 @@ public class AutenticacaoController {
         }
 
         // --- CORREÇÃO DE SEGURANÇA (aplicada) ---
-        novoPaciente.setSenha(usuarioService.hashSenha(dto.getSenha()));
+//        novoPaciente.setSenha(usuarioService.hashSenha(dto.getSenha()));
+        novoPaciente.setSenha(dto.getSenha());
 
         novoPaciente.setTipoUsuario("PACIENTE");
 
