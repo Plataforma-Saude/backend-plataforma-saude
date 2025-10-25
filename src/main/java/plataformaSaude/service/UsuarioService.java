@@ -1,5 +1,6 @@
 package plataformaSaude.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional
     public void salvarUsuario(Usuario usuario) {
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         usuarioRepository.save(usuario);
@@ -45,6 +47,10 @@ public class UsuarioService {
             return Optional.of(usuario);
         }
         return Optional.empty();
+    }
+
+    public Usuario buscarPorCpf(String cpf) {
+        return usuarioRepository.findByCpf(cpf);
     }
 
     public boolean redefinirSenha(String token, String novaSenha) {

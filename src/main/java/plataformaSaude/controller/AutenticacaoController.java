@@ -1,20 +1,22 @@
 package plataformaSaude.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+// Imports do HEAD
+import jakarta.validation.Valid;
+import plataformaSaude.dto.PacienteRegistroDTO;
+
+// Imports da MAIN
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-// Importações de DTOs
 import plataformaSaude.dto.PasswordResetRequest;
 import plataformaSaude.dto.PasswordResetConfirm;
 import plataformaSaude.dto.LoginRequest;
 import plataformaSaude.dto.AuthResponse;
-// Importações de Modelos e Serviços
+
+// Imports comuns (mesclados)
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import plataformaSaude.model.Medico;
 import plataformaSaude.model.Paciente;
 import plataformaSaude.model.Usuario;
@@ -23,12 +25,11 @@ import plataformaSaude.repository.PacienteRepository;
 import plataformaSaude.service.UsuarioService;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "*") // Ajuste o CrossOrigin conforme necessário
 public class AutenticacaoController {
 
     private final UsuarioService usuarioService;
@@ -36,12 +37,12 @@ public class AutenticacaoController {
     private final PacienteRepository pacienteRepository;
     private final JwtEncoder jwtEncoder;
 
-    // 1. INJEÇÃO DE DEPENDÊNCIA VIA CONSTRUTOR
+    // --- Injeção de dependência da MAIN ---
     public AutenticacaoController(
             UsuarioService usuarioService,
             MedicoRepository medicoRepository,
             PacienteRepository pacienteRepository,
-            JwtEncoder jwtEncoder // Injetado do OAuth2Config
+            JwtEncoder jwtEncoder
     ) {
         this.usuarioService = usuarioService;
         this.medicoRepository = medicoRepository;
@@ -49,23 +50,65 @@ public class AutenticacaoController {
         this.jwtEncoder = jwtEncoder;
     }
 
-    // --- MÉTODOS DE REGISTRO ---
+    // --- Seu novo endpoint de registro de Paciente (do HEAD) ---
+    @PostMapping("/register")
+    public ResponseEntity<?> registrarPaciente(@Valid @RequestBody PacienteRegistroDTO dto) {
+        if (usuarioService.buscarPorEmail(dto.getEmail()) != null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Erro: O email informado já está em uso");
+        }
 
-    @PostMapping("/register/paciente")
-    public ResponseEntity<Paciente> registrarPaciente(@RequestBody Paciente paciente) {
-        paciente.setTipoUsuario("PACIENTE"); //Permissão
-        paciente.setSenha(usuarioService.hashSenha(paciente.getSenha()));
-        Paciente novoPaciente = pacienteRepository.save(paciente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoPaciente);
+        if (usuarioService.buscarPorCpf(dto.getCpf()) != null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Erro: O CPF informado já está cadastrado.");
+        }
+
+        Paciente novoPaciente = new Paciente();
+        novoPaciente.setEmail(dto.getEmail());
+        novoPaciente.setCpf(dto.getCpf());
+
+        String nomeCompleto = dto.getNomeCompleto();
+        String[] partesNome = nomeCompleto.trim().split(" ", 2);
+
+        novoPaciente.setNome(partesNome[0]);
+
+        if (partesNome.length > 1) {
+            novoPaciente.setSobrenome(partesNome[1]);
+        } else {
+            novoPaciente.setSobrenome("");
+        }
+
+        // --- CORREÇÃO DE SEGURANÇA (aplicada) ---
+//        novoPaciente.setSenha(usuarioService.hashSenha(dto.getSenha()));
+        novoPaciente.setSenha(dto.getSenha());
+
+        novoPaciente.setTipoUsuario("PACIENTE");
+
+        try {
+            usuarioService.salvarUsuario(novoPaciente);
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body("Usuário registrado com sucesso");
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao registrar usuário: " + e.getMessage());
+        }
     }
 
+    // --- Endpoint de registro de Médico (da MAIN) ---
     @PostMapping("/register/medico")
     public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
-        medico.setTipoUsuario("MEDICO"); // Define a Role (ajustado no Usuario.java)
+        medico.setTipoUsuario("MEDICO"); // Define a Role
         medico.setSenha(usuarioService.hashSenha(medico.getSenha()));
         Medico novoMedico = medicoRepository.save(medico);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoMedico);
     }
+
+
+    // --- Métodos de Login e Reset (da MAIN) ---
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -80,7 +123,7 @@ public class AutenticacaoController {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600))
+                .expiresAt(now.plusSeconds(3600)) // Token expira em 1 hora
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getId())
                 .claim("nome", usuario.getNome())
