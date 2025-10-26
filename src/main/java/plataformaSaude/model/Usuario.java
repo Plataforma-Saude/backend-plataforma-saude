@@ -173,4 +173,13 @@ public class Usuario implements UserDetails {
     public Long getId() {
         return id;
     }
+
+    public String getMfaSecret() {
+        return mfaSecret;
+    }
+
+    public void setMfaSecret(String mfaSecret) {
+        this.mfaSecret = mfaSecret;
+    }
+
 }

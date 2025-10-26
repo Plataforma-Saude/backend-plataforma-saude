@@ -1,11 +1,10 @@
 package plataformaSaude.dto;
 
-// Não precisa de importações do Spring
 public class LoginRequest {
     private String email;
     private String senha;
+    private String mfaCode;
 
-    // Getters e Setters
     public String getEmail() {
         return email;
     }
@@ -20,5 +19,13 @@ public class LoginRequest {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public String getMfaCode() {
+        return mfaCode;
+    }
+
+    public void setMfaCode(String mfaCode) {
+        this.mfaCode = mfaCode;
     }
 }
