@@ -21,7 +21,8 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(name = "mfa_secret")
+    private String mfaSecret;
     private String nome;
     private String sobrenome;
     private String cpf;
