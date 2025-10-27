@@ -18,7 +18,6 @@ import plataformaSaude.repository.PacienteRepository;
 import plataformaSaude.service.UsuarioService;
 import plataformaSaude.service.RefreshTokenService;
 import plataformaSaude.service.EmailService;
-
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -44,16 +43,18 @@ public class AutenticacaoController {
             MedicoRepository medicoRepository,
             PacienteRepository pacienteRepository,
             JwtEncoder jwtEncoder,
+
             RefreshTokenService refreshTokenService,
             EmailService emailService
+            RefreshTokenService refreshTokenService
     ) {
         this.usuarioService = usuarioService;
         this.medicoRepository = medicoRepository;
         this.pacienteRepository = pacienteRepository;
         this.jwtEncoder = jwtEncoder;
         this.refreshTokenService = refreshTokenService;
+
         this.emailService = emailService;
-    }
 
     // Registro de Paciente
     @PostMapping("/register")
@@ -94,12 +95,14 @@ public class AutenticacaoController {
     @PostMapping("/register/medico")
     public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
         medico.setTipoUsuario("MEDICO");
-        medico.setSenha(medico.getSenha());
+        medico.setSenha(medico.getSenha()); // encode ocorre no service
         Medico novoMedico = medicoRepository.save(medico);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoMedico);
     }
-
     // Login com JWT + Refresh Token
+
+    // Login com geração de Access + Refresh Token
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Usuario usuario = usuarioService.buscarPorEmail(request.getEmail());
@@ -113,7 +116,7 @@ public class AutenticacaoController {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600)) // 1h
+                .expiresAt(now.plusSeconds(3600)) // Access Token: 1h
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getId())
                 .claim("nome", usuario.getNome())
@@ -122,14 +125,11 @@ public class AutenticacaoController {
 
         String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
         RefreshToken refreshToken = refreshTokenService.criarRefreshToken(usuario.getEmail());
-
         return ResponseEntity.ok(Map.of(
                 "accessToken", accessToken,
                 "refreshToken", refreshToken.getToken()
         ));
     }
-
-    // Refresh Token
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");
@@ -158,24 +158,22 @@ public class AutenticacaoController {
         ));
     }
 
-    // Solicitar redefinição de senha
     @PostMapping("/reset-password-request")
+    //Redefinição de senha
+    @PostMapping("/redefinir-senha")
     public ResponseEntity<String> solicitarResetSenha(@RequestBody PasswordResetRequest request) {
         String email = request.getEmail();
 
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body("O e-mail é obrigatório.");
         }
-
         var usuarioOpt = usuarioService.gerarTokenResetSenha(email);
-
         if (usuarioOpt.isPresent()) {
             String token = usuarioOpt.get().getResetPasswordToken();
             String link = appFrontendUrl + "?token=" + token;
-
             emailService.enviarEmail(
                     email,
-                    "Redefinição de senha - Plataforma Saúde",
+                    "Redefinição de senha - MedFast",
                     "Clique no link abaixo para redefinir sua senha:\n\n" + link + "\n\nEste link expira em 24 horas."
             );
         }
@@ -185,6 +183,11 @@ public class AutenticacaoController {
 
     // Confirmar redefinição de senha
     @PostMapping("/reset-password-confirm")
+        return ResponseEntity.ok("Caso o seu e-mail esteja cadastrado, você receberá um link em instantes.");
+    }
+
+    // Confirmar redefinição de senha
+    @PostMapping("/reset-senha")
     public ResponseEntity<String> redefinirSenha(@RequestBody PasswordResetConfirm request) {
         String token = request.getToken();
         String novaSenha = request.getNovaSenha();
@@ -194,7 +197,8 @@ public class AutenticacaoController {
         }
 
         if (usuarioService.redefinirSenha(token, novaSenha)) {
-            return ResponseEntity.ok("Senha redefinida com sucesso.");
+            return ResponseEntity.ok("Nova senha criada com sucesso!");
+
         } else {
             return ResponseEntity.badRequest().body("Token inválido ou expirado.");
         }
