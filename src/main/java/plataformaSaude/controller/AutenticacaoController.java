@@ -18,8 +18,8 @@ import plataformaSaude.repository.PacienteRepository;
 import plataformaSaude.service.UsuarioService;
 import plataformaSaude.service.RefreshTokenService;
 import plataformaSaude.service.EmailService;
-import plataformaSaude.service.MfaService;
 
+import plataformaSaude.service.MfaService;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +37,7 @@ public class AutenticacaoController {
     private final EmailService emailService;
     private final MfaService mfaService;
 
+    // Valor padrão caso variável não esteja definida no .env
     @Value("${app.frontend.url:http://localhost:3000/reset-senha}")
     private String appFrontendUrl;
 
@@ -45,15 +46,23 @@ public class AutenticacaoController {
             MedicoRepository medicoRepository,
             PacienteRepository pacienteRepository,
             JwtEncoder jwtEncoder,
+
             RefreshTokenService refreshTokenService,
             EmailService emailService,
             MfaService mfaService
+
+
+            RefreshTokenService refreshTokenService,
+            EmailService emailService
+            RefreshTokenService refreshTokenService
+
     ) {
         this.usuarioService = usuarioService;
         this.medicoRepository = medicoRepository;
         this.pacienteRepository = pacienteRepository;
         this.jwtEncoder = jwtEncoder;
         this.refreshTokenService = refreshTokenService;
+
         this.emailService = emailService;
         this.mfaService = mfaService;
     }
@@ -63,8 +72,17 @@ public class AutenticacaoController {
     public ResponseEntity<?> registrarPaciente(@Valid @RequestBody PacienteRegistroDTO dto) {
         if (usuarioService.buscarPorEmail(dto.getEmail()) != null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro: O email informado já está em uso.");
+        this.emailService = emailService;
+
+    // Registro de Paciente
+    @PostMapping("/register")
+    public ResponseEntity<?> registrarPaciente(@Valid @RequestBody PacienteRegistroDTO dto) {
+        if (usuarioService.buscarPorEmail(dto.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro: O email informado já está em uso.");
         }
         if (usuarioService.buscarPorCpf(dto.getCpf()) != null) {
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro: O CPF informado já está cadastrado.");
         }
 
@@ -82,7 +100,9 @@ public class AutenticacaoController {
 
         try {
             usuarioService.salvarUsuario(novoPaciente);
+
             return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso.");
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro ao registrar usuário: " + e.getMessage());
@@ -94,11 +114,12 @@ public class AutenticacaoController {
     public ResponseEntity<Medico> registrarMedico(@RequestBody Medico medico) {
         medico.setTipoUsuario("MEDICO");
         medico.setSenha(medico.getSenha());
+    // Registro de Médico
         Medico novoMedico = medicoRepository.save(medico);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoMedico);
     }
+    // Login com JWT + Refresh Token
 
-    // Login com JWT e MFA
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Usuario usuario = usuarioService.buscarPorEmail(request.getEmail());
@@ -129,6 +150,7 @@ public class AutenticacaoController {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("MedFast")
                 .issuedAt(now)
+
                 .expiresAt(now.plusSeconds(3600))
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getId())
@@ -138,7 +160,6 @@ public class AutenticacaoController {
 
         String accessToken = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
         RefreshToken refreshToken = refreshTokenService.criarRefreshToken(usuario.getEmail());
-
         return ResponseEntity.ok(Map.of(
                 "accessToken", accessToken,
                 "refreshToken", refreshToken.getToken()
@@ -199,19 +220,53 @@ public class AutenticacaoController {
 
     // Solicitar redefinição de senha
     @PostMapping("/reset-password-request")
+        return ResponseEntity.ok(Map.of(
+                "accessToken", accessToken,
+                "refreshToken", refreshToken.getToken()
+        ));
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        Optional<RefreshToken> validToken = refreshTokenService.validarRefreshToken(refreshToken);
+
+        if (validToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Refresh token inválido ou expirado."));
+        }
+
+        String username = validToken.get().getUsername();
+        Instant now = Instant.now();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(3600))
+                .subject(username)
+                .build();
+
+        String novoAccessToken = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+        return ResponseEntity.ok(Map.of(
+                "accessToken", novoAccessToken,
+                "refreshToken", refreshToken
+        ));
+    }
+
+    @PostMapping("/reset-password-request")
+    //Redefinição de senha
+    @PostMapping("/redefinir-senha")
     public ResponseEntity<String> solicitarResetSenha(@RequestBody PasswordResetRequest request) {
         String email = request.getEmail();
 
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body("O e-mail é obrigatório.");
         }
-
         var usuarioOpt = usuarioService.gerarTokenResetSenha(email);
 
         if (usuarioOpt.isPresent()) {
             String token = usuarioOpt.get().getResetPasswordToken();
             String link = appFrontendUrl + "?token=" + token;
-
             emailService.enviarEmail(
                     email,
                     "Redefinição de senha - MedFast",
@@ -222,8 +277,13 @@ public class AutenticacaoController {
         return ResponseEntity.ok("Caso o e-mail esteja cadastrado, você receberá um link em instantes.");
     }
 
-    // Redefinir senha
+    // Confirmar redefinição de senha
     @PostMapping("/reset-password-confirm")
+        return ResponseEntity.ok("Caso o seu e-mail esteja cadastrado, você receberá um link em instantes.");
+    }
+
+    // Confirmar redefinição de senha
+    @PostMapping("/reset-senha")
     public ResponseEntity<String> redefinirSenha(@RequestBody PasswordResetConfirm request) {
         String token = request.getToken();
         String novaSenha = request.getNovaSenha();
@@ -233,7 +293,8 @@ public class AutenticacaoController {
         }
 
         if (usuarioService.redefinirSenha(token, novaSenha)) {
-            return ResponseEntity.ok("Senha redefinida com sucesso.");
+            return ResponseEntity.ok("Nova senha criada com sucesso!");
+
         } else {
             return ResponseEntity.badRequest().body("Token inválido ou expirado.");
         }
