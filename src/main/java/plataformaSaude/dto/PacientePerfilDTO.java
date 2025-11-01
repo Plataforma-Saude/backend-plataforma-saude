@@ -17,7 +17,7 @@ public class PacientePerfilDTO {
     // Endereço
     private String cep;
     private String rua;
-    private String numero; // <-- Como você confirmou, está aqui!
+    private String numero;
     private String complemento;
     private String cidade;
     private String estado;

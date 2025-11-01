@@ -19,9 +19,9 @@ public class PacienteController {
     private final PacienteRepository repository;
     private final UsuarioService usuarioService;
 
-    public PacienteController(PacienteRepository repository, UsuarioService usuarioService) { // <-- ADICIONE O PARÂMETRO
+    public PacienteController(PacienteRepository repository, UsuarioService usuarioService) {
         this.repository = repository;
-        this.usuarioService = usuarioService; // <-- ADICIONE ESTA LINHA
+        this.usuarioService = usuarioService;
     }
 
     // Criar paciente
