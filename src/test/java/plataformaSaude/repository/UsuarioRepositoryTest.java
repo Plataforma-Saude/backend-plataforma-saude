@@ -37,8 +37,7 @@ public class UsuarioRepositoryTest {
         // Dado que temos um novo usuário
         Usuario novoUsuario = new Usuario();
         novoUsuario.setEmail("joao.silva@exemplo.com");
-        novoUsuario.setNome("João");
-        novoUsuario.setSobrenome("Silva");
+        novoUsuario.setNomeCompleto("João Silva");
 
         // Quando salvamos o usuário
         Usuario usuarioSalvo = usuarioRepository.save(novoUsuario);

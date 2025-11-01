@@ -42,8 +42,7 @@ public class MedicoService {
         Medico medico = new Medico();
 
         // Copia dados do Usuario + Medico
-        medico.setNome(dto.getNome());
-        medico.setSobrenome(dto.getSobrenome());
+        medico.setNomeCompleto(dto.getNome());
         medico.setCpf(dto.getCpf());
         medico.setEmail(dto.getEmail());
         medico.setSenha(passwordEncoder.encode(dto.getSenha())); // Codifica a senha
@@ -79,8 +78,7 @@ public class MedicoService {
                 .orElseThrow(() -> new RuntimeException("Médico não encontrado com ID: " + id));
 
         // Atualiza dados (exceto senha, a menos que haja lógica para isso)
-        medico.setNome(dto.getNome());
-        medico.setSobrenome(dto.getSobrenome());
+        medico.setNomeCompleto(dto.getNome());
         medico.setCpf(dto.getCpf());
         medico.setEmail(dto.getEmail());
         medico.setCelular(dto.getCelular());

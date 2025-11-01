@@ -11,8 +11,7 @@ import java.util.List;
 public class MedicoDTO {
 
     // Dados do Usuario
-    private String nome;
-    private String sobrenome;
+    private String nomeCompleto;
     private String cpf;
     private String email;
     private String senha; // Apenas para criação
@@ -29,10 +28,8 @@ public class MedicoDTO {
     private List<HorarioDTO> horariosTrabalho;
 
     // Getters e Setters para todos os campos
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-    public String getSobrenome() { return sobrenome; }
-    public void setSobrenome(String sobrenome) { this.sobrenome = sobrenome; }
+    public String getNome() { return nomeCompleto; }
+    public void setNomeCompleto(String nome) { this.nomeCompleto = nome; }
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
     public String getEmail() { return email; }

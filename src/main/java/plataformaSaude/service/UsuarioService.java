@@ -14,21 +14,24 @@ import java.util.UUID;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Transactional
     public void salvarUsuario(Usuario usuario) {
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         usuarioRepository.save(usuario);
     }
-    public String hashSenha(String senha){
+
+    public String hashSenha(String senha) {
         return passwordEncoder.encode(senha);
     }
-
 
     public boolean validarSenha(Usuario usuario, String senhaDigitada) {
         return passwordEncoder.matches(senhaDigitada, usuario.getSenha());
@@ -37,6 +40,13 @@ public class UsuarioService {
     public Usuario buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
+
+    public Usuario buscarPorCpf(String cpf) {
+        return usuarioRepository.findByCpf(cpf);
+    }
+
+    /* Gera token redefinição de senha válido por 24h. */
+    @Transactional
     public Optional<Usuario> gerarTokenResetSenha(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email);
         if (usuario != null) {
@@ -49,16 +59,18 @@ public class UsuarioService {
         return Optional.empty();
     }
 
-    public Usuario buscarPorCpf(String cpf) {
-        return usuarioRepository.findByCpf(cpf);
-    }
-
+    /** Redefine a senha se o token for válido.  */
+    @Transactional
     public boolean redefinirSenha(String token, String novaSenha) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByResetPasswordToken(token);
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            if (usuario.getResetPasswordTokenExpiryDate().isAfter(LocalDate.now())) {
+
+            boolean tokenValido = usuario.getResetPasswordTokenExpiryDate() != null &&
+                    usuario.getResetPasswordTokenExpiryDate().isAfter(LocalDate.now());
+
+            if (tokenValido) {
                 usuario.setSenha(passwordEncoder.encode(novaSenha));
                 usuario.setResetPasswordToken(null);
                 usuario.setResetPasswordTokenExpiryDate(null);
