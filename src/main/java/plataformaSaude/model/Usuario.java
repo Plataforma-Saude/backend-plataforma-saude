@@ -1,4 +1,5 @@
 package plataformaSaude.model;
+
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -8,11 +9,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Column; // Adicionado para garantir o tamanho da senha
+import jakarta.persistence.Column;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -21,6 +21,8 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "mfa_secret")
+    private String mfaSecret;
 
     private String nomeCompleto;
     private String cpf;
@@ -32,22 +34,21 @@ public class Usuario implements UserDetails {
     private String rua;
     private String cidade;
     private String estado;
+    private String numero;
+    private String complemento;
+
     private LocalDate dataNascimento;
     private LocalDate dataCadastro;
     private String resetPasswordToken;
     private LocalDate resetPasswordTokenExpiryDate;
-    private String numero;
-    private String complemento;
 
     private String tipoUsuario;
 
     public Usuario() {
         this.dataCadastro = LocalDate.now();
-
         this.tipoUsuario = determinarTipoUsuario();
     }
 
-    // Construtor de cadastro com campos obrigatórios
     public Usuario(String nomeCompleto, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
         this.nomeCompleto = nomeCompleto;
         this.cpf = cpf;
@@ -59,7 +60,6 @@ public class Usuario implements UserDetails {
         this.tipoUsuario = determinarTipoUsuario();
     }
 
-    // Método auxiliar para definir a Role do usuário
     private String determinarTipoUsuario() {
         if (this instanceof Medico) {
             return "MEDICO";
@@ -79,7 +79,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Retorna a role baseada no tipo de instância (ROLE_MEDICO, ROLE_PACIENTE, etc.)
         String role = "ROLE_" + this.tipoUsuario;
         return List.of(new SimpleGrantedAuthority(role));
     }
@@ -170,5 +169,13 @@ public class Usuario implements UserDetails {
 
     public Long getId() {
         return id;
+    }
+
+    public String getMfaSecret() {
+        return mfaSecret;
+    }
+
+    public void setMfaSecret(String mfaSecret) {
+        this.mfaSecret = mfaSecret;
     }
 }
