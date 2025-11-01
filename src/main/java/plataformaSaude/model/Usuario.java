@@ -22,13 +22,11 @@ public class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
-    private String sobrenome;
+    private String nomeCompleto;
     private String cpf;
     private String email;
     @Column(length = 100)
     private String senha;
-    private String telefone;
     private String celular;
     private String cep;
     private String rua;
@@ -38,6 +36,8 @@ public class Usuario implements UserDetails {
     private LocalDate dataCadastro;
     private String resetPasswordToken;
     private LocalDate resetPasswordTokenExpiryDate;
+    private String numero;
+    private String complemento;
 
     private String tipoUsuario;
 
@@ -48,9 +48,8 @@ public class Usuario implements UserDetails {
     }
 
     // Construtor de cadastro com campos obrigatórios
-    public Usuario(String nome, String sobrenome, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
-        this.nome = nome;
-        this.sobrenome = sobrenome;
+    public Usuario(String nomeCompleto, String cpf, String email, String senha, String celular, LocalDate dataNascimento) {
+        this.nomeCompleto = nomeCompleto;
         this.cpf = cpf;
         this.email = email;
         this.senha = senha;
@@ -131,11 +130,8 @@ public class Usuario implements UserDetails {
         this.resetPasswordTokenExpiryDate = resetPasswordTokenExpiryDate;
     }
 
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getSobrenome() { return sobrenome; }
-    public void setSobrenome(String sobrenome) { this.sobrenome = sobrenome; }
+    public String getNomeCompleto() { return nomeCompleto; }
+    public void setNomeCompleto(String nomeCompleto) { this.nomeCompleto = nomeCompleto; }
 
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
@@ -145,9 +141,6 @@ public class Usuario implements UserDetails {
 
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-
-    public String getTelefone() { return telefone; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
 
     public String getCelular() { return celular; }
     public void setCelular(String celular) { this.celular = celular; }
@@ -163,6 +156,12 @@ public class Usuario implements UserDetails {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
+
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
 
     public LocalDate getDataNascimento() { return dataNascimento; }
     public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }

@@ -45,8 +45,7 @@ public class MedicoController {
     public Medico atualizar(@PathVariable Long id, @RequestBody Medico novosDados) {
         return repository.findById(id)
                 .map(m -> {
-                    m.setNome(novosDados.getNome());
-                    m.setSobrenome(novosDados.getSobrenome());
+                    m.setNomeCompleto(novosDados.getNomeCompleto());
                     m.setEmail(novosDados.getEmail());
                     m.setCrm(novosDados.getCrm());
                     m.setEspecialidade(novosDados.getEspecialidade());

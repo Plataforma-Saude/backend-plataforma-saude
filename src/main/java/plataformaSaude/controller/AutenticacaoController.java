@@ -69,16 +69,7 @@ public class AutenticacaoController {
         novoPaciente.setEmail(dto.getEmail());
         novoPaciente.setCpf(dto.getCpf());
 
-        String nomeCompleto = dto.getNomeCompleto();
-        String[] partesNome = nomeCompleto.trim().split(" ", 2);
-
-        novoPaciente.setNome(partesNome[0]);
-
-        if (partesNome.length > 1) {
-            novoPaciente.setSobrenome(partesNome[1]);
-        } else {
-            novoPaciente.setSobrenome("");
-        }
+        novoPaciente.setNomeCompleto(dto.getNomeCompleto());
 
         // --- CORREÇÃO DE SEGURANÇA (aplicada) ---
 //        novoPaciente.setSenha(usuarioService.hashSenha(dto.getSenha()));
@@ -126,7 +117,7 @@ public class AutenticacaoController {
                 .expiresAt(now.plusSeconds(3600)) // Token expira em 1 hora
                 .subject(usuario.getEmail())
                 .claim("id", usuario.getId())
-                .claim("nome", usuario.getNome())
+                .claim("nome", usuario.getNomeCompleto())
                 .claim("roles", role)
                 .build();
 
