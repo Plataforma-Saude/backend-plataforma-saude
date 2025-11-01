@@ -1,3 +1,4 @@
+// src/main/java/plataformaSaude/repository/AgendamentoRepository.java
 package plataformaSaude.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,25 +10,55 @@ import plataformaSaude.model.Agendamento;
 
 import java.time.LocalDateTime;
 import java.util.List;
+// Os imports duplicados foram removidos
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
-    List<Agendamento> findByNomePacienteContainingIgnoreCase(String nomePaciente);
-
-    List<Agendamento> findByNomeMedicoContainingIgnoreCase(String nomeMedico);
-
-    List<Agendamento> findByEspecialidadeContainingIgnoreCase(String especialidade);
-
     List<Agendamento> findByStatus(StatusAgendamento status);
 
-    List<Agendamento> findByDataConsultaBetween(LocalDateTime inicio, LocalDateTime fim);
+    // Busca por ID
+    List<Agendamento> findByMedicoId(Long medicoId);
+    List<Agendamento> findByPacienteId(Long pacienteId);
 
-    @Query("SELECT a FROM Agendamento a WHERE a.dataConsulta >= :dataAtual ORDER BY a.dataConsulta ASC")
+    // Busca por especialidade (usando JOIN)
+    @Query("SELECT a FROM Agendamento a WHERE a.medico.especialidade = :especialidade")
+    List<Agendamento> findByMedicoEspecialidade(@Param("especialidade") String especialidade);
+
+
+    // Método de busca de futuros
+    @Query("SELECT a FROM Agendamento a WHERE a.dataConsultaInicio >= :dataAtual ORDER BY a.dataConsultaInicio ASC")
     List<Agendamento> findAgendamentosFuturos(@Param("dataAtual") LocalDateTime dataAtual);
 
-    @Query("SELECT COUNT(a) FROM Agendamento a WHERE a.nomeMedico = :medico AND a.dataConsulta = :dataConsulta AND a.id != :idExcluir")
-    Long countByMedicoAndDataConsulta(@Param("medico") String medico,
-                                      @Param("dataConsulta") LocalDateTime dataConsulta,
-                                      @Param("idExcluir") Long idExcluir);
+
+    // +++ MÉTODO QUE FALTAVA (Para o HorarioService) +++
+    /**
+     * Busca agendamentos ativos para um médico em um DIA INTEIRO.
+     * Usado pelo HorarioService para saber quais slots já estão ocupados.
+     */
+    @Query("SELECT a FROM Agendamento a WHERE a.medico.id = :medicoId " +
+            "AND a.status NOT IN (plataformaSaude.Enum.StatusAgendamento.CANCELADO, plataformaSaude.Enum.StatusAgendamento.FALTOU) " +
+            "AND a.dataConsultaInicio < :fimDoDia " +   // Início < 00:00 do dia SEGUINTE
+            "AND a.dataConsultaFim > :inicioDoDia") // Fim > 00:00 do dia ATUAL
+    List<Agendamento> findActiveAppointmentsByMedicoAndDateRange(
+            @Param("medicoId") Long medicoId,
+            @Param("inicioDoDia") LocalDateTime inicioDoDia,
+            @Param("fimDoDia") LocalDateTime fimDoDia);
+
+
+    // +++ NOVA QUERY DE CONFLITO (Para o AgendamentoService) +++
+    /**
+     * Busca agendamentos que se SOBREPÕEM a um novo intervalo [inicio, fim].
+     * Usado pelo AgendamentoService para evitar double-booking.
+     */
+    @Query("SELECT a FROM Agendamento a WHERE a.medico.id = :medicoId " +
+            "AND a.id != :idExcluir " +
+            "AND a.status NOT IN (plataformaSaude.Enum.StatusAgendamento.CANCELADO, plataformaSaude.Enum.StatusAgendamento.FALTOU) " +
+            "AND a.dataConsultaInicio < :fim " +   // StartA < EndB
+            "AND a.dataConsultaFim > :inicio") // EndA > StartB
+    List<Agendamento> findOverlappingAppointments(
+            @Param("medicoId") Long medicoId,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("idExcluir") Long idExcluir);
 }

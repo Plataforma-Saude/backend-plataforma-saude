@@ -1,8 +1,15 @@
+// src/main/java/plataformaSaude/model/Agendamento.java
 package plataformaSaude.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
+
+// +++ IMPORTAÇÕES ADICIONADAS +++
+import plataformaSaude.Enum.StatusAgendamento; // Importando o Enum do pacote correto
+import plataformaSaude.model.Medico;
+import plataformaSaude.model.Paciente;
+
 
 @Entity
 @Table(name = "agendamentos")
@@ -12,30 +19,54 @@ public class Agendamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Nome do paciente é obrigatório")
-    @Column(nullable = false)
-    private String nomePaciente;
+    // --- CAMPO REMOVIDO ---
+    // @NotBlank(message = "Nome do paciente é obrigatório")
+    // @Column(nullable = false)
+    // private String nomePaciente;
 
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ser válido")
-    @Column(nullable = false)
-    private String email;
+    // --- CAMPO REMOVIDO ---
+    // @NotBlank(message = "Email é obrigatório")
+    // @Email(message = "Email deve ser válido")
+    // @Column(nullable = false)
+    // private String email;
 
-    @NotBlank(message = "Telefone é obrigatório")
-    @Column(nullable = false)
-    private String telefone;
+    // --- CAMPO REMOVIDO ---
+    // @NotBlank(message = "Telefone é obrigatório")
+    // @Column(nullable = false)
+    // private String telefone;
 
-    @NotBlank(message = "Especialidade é obrigatória")
-    @Column(nullable = false)
-    private String especialidade;
+    // +++ NOVO RELACIONAMENTO +++
+    @NotNull(message = "Paciente é obrigatório")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", nullable = false)
+    private Paciente paciente;
 
-    @NotBlank(message = "Nome do médico é obrigatório")
-    @Column(nullable = false)
-    private String nomeMedico;
+    // --- CAMPO REMOVIDO (será obtido via médico) ---
+    // @NotBlank(message = "Especialidade é obrigatória")
+    // @Column(nullable = false)
+    // private String especialidade;
 
+    // --- CAMPO REMOVIDO ---
+    // @NotBlank(message = "Nome do médico é obrigatório")
+    // @Column(nullable = false)
+    // private String nomeMedico;
+
+    // +++ NOVO RELACIONAMENTO +++
+    @NotNull(message = "Médico é obrigatório")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "medico_id", nullable = false)
+    private Medico medico;
+
+    // --- CAMPO RENOMEADO ---
+    @NotNull(message = "Data de início da consulta é obrigatória")
     @Future(message = "Data da consulta deve ser no futuro")
     @Column(nullable = false)
-    private LocalDateTime dataConsulta;
+    private LocalDateTime dataConsultaInicio; // Era 'dataConsulta'
+
+    // +++ NOVO CAMPO +++
+    @NotNull(message = "Data de fim da consulta é obrigatória")
+    @Column(nullable = false)
+    private LocalDateTime dataConsultaFim;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;
@@ -52,38 +83,37 @@ public class Agendamento {
     // Construtores
     public Agendamento() {}
 
-    public Agendamento(String nomePaciente, String email, String telefone,
-                       String especialidade, String nomeMedico, LocalDateTime dataConsulta) {
-        this.nomePaciente = nomePaciente;
-        this.email = email;
-        this.telefone = telefone;
-        this.especialidade = especialidade;
-        this.nomeMedico = nomeMedico;
-        this.dataConsulta = dataConsulta;
+    // --- CONSTRUTOR ATUALIZADO (opcional, mas recomendado) ---
+    public Agendamento(Paciente paciente, Medico medico, LocalDateTime dataConsultaInicio, LocalDateTime dataConsultaFim) {
+        this.paciente = paciente;
+        this.medico = medico;
+        this.dataConsultaInicio = dataConsultaInicio;
+        this.dataConsultaFim = dataConsultaFim;
     }
 
     // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getNomePaciente() { return nomePaciente; }
-    public void setNomePaciente(String nomePaciente) { this.nomePaciente = nomePaciente; }
+    // --- GETTERS/SETTERS REMOVIDOS (nomePaciente, email, telefone, especialidade, nomeMedico) ---
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    // +++ NOVOS GETTERS/SETTERS +++
+    public Paciente getPaciente() { return paciente; }
+    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
 
-    public String getTelefone() { return telefone; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
+    public Medico getMedico() { return medico; }
+    public void setMedico(Medico medico) { this.medico = medico; }
 
-    public String getEspecialidade() { return especialidade; }
-    public void setEspecialidade(String especialidade) { this.especialidade = especialidade; }
+    // --- GETTER/SETTER RENOMEADO ---
+    public LocalDateTime getDataConsultaInicio() { return dataConsultaInicio; }
+    public void setDataConsultaInicio(LocalDateTime dataConsultaInicio) { this.dataConsultaInicio = dataConsultaInicio; }
 
-    public String getNomeMedico() { return nomeMedico; }
-    public void setNomeMedico(String nomeMedico) { this.nomeMedico = nomeMedico; }
+    // +++ NOVO GETTER/SETTER +++
+    public LocalDateTime getDataConsultaFim() { return dataConsultaFim; }
+    public void setDataConsultaFim(LocalDateTime dataConsultaFim) { this.dataConsultaFim = dataConsultaFim; }
 
-    public LocalDateTime getDataConsulta() { return dataConsulta; }
-    public void setDataConsulta(LocalDateTime dataConsulta) { this.dataConsulta = dataConsulta; }
 
+    // --- GETTERS/SETTERS EXISTENTES (observacoes, status, etc) ---
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
 
@@ -100,7 +130,7 @@ public class Agendamento {
     @PrePersist
     protected void onCreate() {
         dataCriacao = LocalDateTime.now();
-        dataAtualizacao = LocalDateTime.now();
+        dataAtualizacao = LocalDateTime.now(); // Também é bom setar na criação
     }
 
     @PreUpdate

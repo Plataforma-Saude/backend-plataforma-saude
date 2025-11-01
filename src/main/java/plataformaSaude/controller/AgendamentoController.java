@@ -1,9 +1,10 @@
+// src/main/java/plataformaSaude/controller/AgendamentoController.java
 package plataformaSaude.controller;
 
-import com.agendamento.dto.AgendamentoDTO;
-import com.agendamento.model.Agendamento;
-import com.agendamento.model.StatusAgendamento;
-import com.agendamento.service.AgendamentoService;
+import plataformaSaude.dto.AgendamentoDTO; // +++ O NOVO DTO
+import plataformaSaude.model.Agendamento;
+import plataformaSaude.Enum.StatusAgendamento; // +++ IMPORT CORRETO
+import plataformaSaude.service.AgendamentoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/agendamentos")
-@CrossOrigin(origins = "*") // Para permitir requests do frontend
+@CrossOrigin(origins = "*")
 public class AgendamentoController {
 
     @Autowired
@@ -23,9 +24,10 @@ public class AgendamentoController {
 
     // CREATE - Criar novo agendamento
     @PostMapping
-    public ResponseEntity<?> criarAgendamento(@Valid @RequestBody AgendamentoDTO agendamentoDTO) {
+    public ResponseEntity<?> criarAgendamento(@Valid @RequestBody AgendamentoDTO agendamentoDTO) { // +++ DTO ATUALIZADO
         try {
             Agendamento agendamento = agendamentoService.criarAgendamento(agendamentoDTO);
+            // Retornar o agendamento completo (com dados do médico/paciente)
             return ResponseEntity.status(HttpStatus.CREATED).body(agendamento);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -57,7 +59,7 @@ public class AgendamentoController {
     // UPDATE - Atualizar agendamento
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarAgendamento(@PathVariable Long id,
-                                                  @Valid @RequestBody AgendamentoDTO agendamentoDTO) {
+                                                  @Valid @RequestBody AgendamentoDTO agendamentoDTO) { // +++ DTO ATUALIZADO
         try {
             Agendamento agendamento = agendamentoService.atualizarAgendamento(id, agendamentoDTO);
             return ResponseEntity.ok(agendamento);
@@ -89,16 +91,19 @@ public class AgendamentoController {
         }
     }
 
-    // Buscas específicas
-    @GetMapping("/paciente/{nome}")
-    public ResponseEntity<List<Agendamento>> buscarPorPaciente(@PathVariable String nome) {
-        List<Agendamento> agendamentos = agendamentoService.buscarPorPaciente(nome);
+    // --- Buscas específicas (Refatoradas) ---
+
+    // Agora busca por ID, não por nome
+    @GetMapping("/paciente/{id}")
+    public ResponseEntity<List<Agendamento>> buscarPorPaciente(@PathVariable Long id) {
+        List<Agendamento> agendamentos = agendamentoService.buscarPorPaciente(id);
         return ResponseEntity.ok(agendamentos);
     }
 
-    @GetMapping("/medico/{nome}")
-    public ResponseEntity<List<Agendamento>> buscarPorMedico(@PathVariable String nome) {
-        List<Agendamento> agendamentos = agendamentoService.buscarPorMedico(nome);
+    // Agora busca por ID, não por nome
+    @GetMapping("/medico/{id}")
+    public ResponseEntity<List<Agendamento>> buscarPorMedico(@PathVariable Long id) {
+        List<Agendamento> agendamentos = agendamentoService.buscarPorMedico(id);
         return ResponseEntity.ok(agendamentos);
     }
 

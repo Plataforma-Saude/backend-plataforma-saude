@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface MedicoRepository extends JpaRepository<Medico, Long> {
     Optional<Medico> findByEmail(String email);
+    Optional<Medico> findByCrm(String crm);
 }
