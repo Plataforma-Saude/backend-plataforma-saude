@@ -179,10 +179,10 @@ public class AutenticacaoController {
         usuarioService.salvarUsuario(usuario);
 
         try {
-            String qrCode = mfaService.generateQrCodeImage(secret, email);
+            String qrCodeUrl = mfaService.getQrCodeURL(secret, email, "MedFast");
             return ResponseEntity.ok(Map.of(
                     "secret", secret,
-                    "qrCode", qrCode
+                    "qrCodeUrl", qrCodeUrl
             ));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Erro ao gerar QR Code");

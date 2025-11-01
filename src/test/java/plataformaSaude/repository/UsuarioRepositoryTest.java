@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.ActiveProfiles;
 import plataformaSaude.model.Usuario;
-import plataformaSaude.configuration.OAuth2Config;
+import plataformaSaude.configuration.SecurityConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,12 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
         // Desabilita a substituição do DataSource, usando a configuração do application.properties
         excludeAutoConfiguration = {
                 AutoConfigureTestDatabase.class,
-                OAuth2Config.class // Exclui a sua configuração de segurança
+                SecurityConfig.class // Exclui a sua configuração de segurança
         },
         // Filtra para não carregar a configuração de segurança
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = OAuth2Config.class
+                classes = SecurityConfig.class
         )
 )
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
