@@ -31,7 +31,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-public class OAuth2Config {
+public class SecurityConfig {
 
     private static final KeyPair RSA_KEY_PAIR = generateRsaKeyPair();
 
@@ -68,6 +68,12 @@ public class OAuth2Config {
                 )
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin())
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'"))
+                        .xssProtection(xss -> xss.disable())
+                        .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .permissionsPolicy(permissions -> permissions
+                                .policy("geolocation=(), microphone=(), camera=()")
+                        )
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .oauth2Login(oauth2 -> oauth2
@@ -75,15 +81,12 @@ public class OAuth2Config {
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/auth/login?error=true")
                 )
-
-                // ✅ Logout opcional
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
                 )
-
                 .build();
     }
 

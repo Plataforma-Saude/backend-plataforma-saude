@@ -42,6 +42,12 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- Dependência Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- Dependência Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -109,11 +115,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency> <!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
-            <groupId>com.h2database</groupId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
-            <artifactId>h2</artifactId><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
-            <scope>runtime</scope><!-- Excluir essa dependencia no final, será usada apenas para testes sem integrar o banco-->
-        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -127,16 +128,29 @@
         </dependency>
 
         <dependency>
-            <groupId>dev.samstevens.totp</groupId>
-            <artifactId>totp</artifactId>
-            <version>1.7.1</version>
+            <groupId>com.warrenstrange</groupId>
+            <artifactId>googleauth</artifactId>
+            <version>1.5.0</version>
         </dependency>
+
         <dependency>
 
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- dependencia para segurança -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+        <!-- sanitização avançada -->
+        <dependency>
+            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+            <artifactId>owasp-java-html-sanitizer</artifactId>
+            <version>20211018.1</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>

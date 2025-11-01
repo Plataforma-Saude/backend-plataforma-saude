@@ -1,42 +1,45 @@
 package plataformaSaude.service;
 
-import dev.samstevens.totp.code.CodeVerifier;
-import dev.samstevens.totp.code.DefaultCodeGenerator;
-import dev.samstevens.totp.code.DefaultCodeVerifier;
-import dev.samstevens.totp.qr.QrData;
-import dev.samstevens.totp.qr.QrGenerator;
-import dev.samstevens.totp.qr.ZxingPngQrGenerator;
-import dev.samstevens.totp.secret.DefaultSecretGenerator;
-import dev.samstevens.totp.time.SystemTimeProvider;
+import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
-
-import static dev.samstevens.totp.util.Utils.getDataUriForImage;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class MfaService {
 
-    private final DefaultSecretGenerator secretGenerator = new DefaultSecretGenerator();
-    private final CodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), new SystemTimeProvider());
+    private final GoogleAuthenticator gAuth = new GoogleAuthenticator();
 
+    /* Gera um secret único para o usuário*/
     public String generateSecret() {
-        return secretGenerator.generate();
+        GoogleAuthenticatorKey key = gAuth.createCredentials();
+        return key.getKey();
     }
 
-    public String generateQrCodeImage(String secret, String email) throws Exception {
-        QrData data = new QrData.Builder()
-                .label(email)
-                .secret(secret)
-                .issuer("MedFast")
-                .build();
+    public String getQrCodeURL(String secret, String email, String issuer) {
+        try {
+            String encodedIssuer = URLEncoder.encode(issuer, StandardCharsets.UTF_8);
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
 
-        QrGenerator generator = new ZxingPngQrGenerator();
-        byte[] imageData = generator.generate(data);
-        return getDataUriForImage(imageData, generator.getImageMimeType());
+            return "otpauth://totp/" + encodedIssuer + ":" + encodedEmail +
+                    "?secret=" + secret +
+                    "&issuer=" + encodedIssuer +
+                    "&algorithm=SHA1&digits=6&period=30";
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar URL do QR Code", e);
+        }
     }
 
+
+    /* Verifica se o código TOTP informado é válido.*/
     public boolean verifyCode(String secret, String code) {
-        return verifier.isValidCode(secret, code);
+        if (secret == null || secret.isBlank()) return false;
+        if (code == null || code.isBlank()) return false;
+        if (!code.matches("\\d{6}")) return false;
+
+        int intCode = Integer.parseInt(code);
+        return gAuth.authorize(secret, intCode);
     }
 }
